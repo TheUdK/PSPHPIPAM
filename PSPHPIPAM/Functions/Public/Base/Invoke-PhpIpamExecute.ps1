@@ -51,7 +51,7 @@ function Invoke-PhpIpamExecute {
         [string]$method = "get",
 
         [parameter(mandatory = $true, HelpMessage = "Enter the controller (API Endpoint)")]
-        [validateSet("sections", "subnets", "folders", "addresses", "vlans", "vlan", "l2domains", "vrf", "tools", "prefix", "user","devices")]
+        [validateSet("sections", "subnets", "folders", "addresses", "vlans", "vlan", "l2domains", "vrf", "tools", "prefix", "user", "devices")]
         [alias('Endpoint')]
         [string]$controller = "sections",
 
@@ -109,7 +109,8 @@ function Invoke-PhpIpamExecute {
             $headers = @{
                 token = $script:phpipamToken
             }
-        } elseif ($headers -and $headers.count -gt 1) {
+        }
+        elseif ($headers -and $headers.count -gt 1) {
             if (!$headers.Contains("token")) {
                 $headers.Add("token", $script:phpipamToken)
             }
@@ -124,7 +125,8 @@ function Invoke-PhpIpamExecute {
             if ($identifiers -and $identifiers.count -gt 0) {
                 $query_hash = convert-identifiersArrayToHashTable $identifiers
                 $query_hash = $query_hash + $params
-            } else {
+            }
+            else {
                 $query_hash = @{ } + $params
             }
             $query_hash.Add("controller", $controller)
@@ -137,7 +139,8 @@ function Invoke-PhpIpamExecute {
 
             # no need to build header
 
-        } else {
+        }
+        else {
             throw "No AppID and AppKey can be used,please use new-PhpIpamSession command first to check and store AppID and AppKey"
         }
     }
@@ -148,12 +151,25 @@ function Invoke-PhpIpamExecute {
         write-debug "headers=$($headers|convertto-json -Depth 100)"
         write-debug "contentType=$($contenttype|ConvertTo-Json -Depth 100)"
         write-debug "body=$($params|convertto-json -Depth 100)"
+        
+        # Initialize the hashtable for splatting
+        $requestParameters = @{
+            Method      = $method
+            Headers     = $headers
+            Uri         = $uri
+            Body        = if ($params -and $params.Count -gt 0) { $params }
+            ContentType = if ($null -ne $ContentType) { $ContentType }
+        }
 
-        $r = Invoke-RestMethod -Method $method -Headers $headers  -Uri $uri -body $params -ContentType $ContentType
+        # Invoke the REST method with splatting
+        $r = Invoke-RestMethod @requestParameters
+
+        Write-Debug "Result=$($r|convertto-json -Depth 100)"
         if ($r -and $r -is [System.Management.Automation.PSCustomObject]) {
             write-debug "Func Return:`r`n$($r|convertto-json -Depth 100)"
             return $r
-        } else {
+        }
+        else {
             # to process unvliad json output like this
             # <div class='alert alert-danger'>Error: SQLSTATE[23000]: Integrity constraint violation: 1048 Column 'cuser' cannot be null</div>{"code":201,"success":true,"data":"Section created"}
             if ($r -and $r -is [System.String]) {
@@ -163,25 +179,29 @@ function Invoke-PhpIpamExecute {
                         $r = ConvertFrom-Json -InputObject $objmatch.Groups[1].Value -ErrorAction Stop
                         write-debug "Func Return:`r`n$($r|convertto-json -Depth 100)"
                         return $r
-                    } catch {
+                    }
+                    catch {
                         throw $("Can not parse the output [" + $r + ']')
                     }
-                } else {
+                }
+                else {
                     throw $("Can not parse the output [" + $r + ']')
                 }
             }
         }
-    } catch {
-        try{
+    }
+    catch {
+        try {
             # for exception caused by returns like this
             # {"code":404,"success":0,"message":"Section does not exist","time":0.0050000000000000001}
-            $message=$_.ErrorDetails.message|ConvertFrom-Json -ErrorAction SilentlyContinue
-            if($message){
+            $message = $_.ErrorDetails.message | ConvertFrom-Json -ErrorAction SilentlyContinue
+            if ($message) {
                 Write-Debug "Func Return:`r`n$($message|convertto-json -Depth 100)"
                 return $message
             }
 
-        }catch{
+        }
+        catch {
             throw $_.ErrorDetails.Message
         }
     }
