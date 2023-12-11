@@ -66,7 +66,7 @@ function Invoke-PhpIpamExecute {
         $headers = @{ },
 
         [parameter(mandatory = $false)]
-        $ContentType = $null
+        $ContentType = "application/json"
 
     )
 
@@ -157,10 +157,9 @@ function Invoke-PhpIpamExecute {
             Method      = $method
             Headers     = $headers
             Uri         = $uri
-            Body        = if ($params -and $params.Count -gt 0) { $params }
+            Body        = if ($params -and $params.Count -gt 0) { $params | ConvertTo-Json -Depth 100 }
             ContentType = if ($null -ne $ContentType) { $ContentType }
         }
-
         # Invoke the REST method with splatting
         $r = Invoke-RestMethod @requestParameters
 
