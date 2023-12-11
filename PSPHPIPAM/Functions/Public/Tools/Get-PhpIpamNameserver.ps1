@@ -27,7 +27,7 @@
     PS C:\> New-PhpIpamNameserver -Param @{"name"="nameserver3"}|get-PhpIpamNameserver
 
     id          : 1
-    name        : znameserver1
+    name        : Google
     namesrv1    : 8.8.8.8;9.9.9.9
     description : this is a nameserver
     permissions : 4
@@ -81,6 +81,6 @@ function Get-PhpIpamNameserver {
     }
 }
 
-New-Alias -Name Get-PhpIpamSectionByName -Value Get-PhpIpamSection
-new-alias -Name Get-PhpIpamSectionByID -Value Get-PhpIpamSection
-Export-ModuleMember  -function  Get-PhpIpamSection -alias "Get-PhpIpamSectionByName", "Get-PhpIpamSectionByID"
+New-Alias -Name Get-PhpIpamNameserverByName -Value Get-PhpIpamNameserver
+new-alias -Name Get-PhpIpamNameserverByID -Value Get-PhpIpamNameserver
+Export-ModuleMember  -function  Get-PhpIpamNameserver -alias "Get-PhpIpamNameserverByName", "Get-PhpIpamNameserverByID"
