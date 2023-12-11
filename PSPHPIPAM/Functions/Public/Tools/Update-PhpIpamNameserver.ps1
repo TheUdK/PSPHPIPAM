@@ -12,17 +12,22 @@
 .NOTES
 
 #>
-function Update-PhpIpamSection {
+function Update-PhpIpamNameserver {
     [cmdletBinding()]
     param(
         [parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [validatescript({ $_ -is [hashtable] -or $_ -is [psCustomObject] })]
-        $Params = @{}
+        $Params = @{},
+        [parameter]
+        [switch]$AllSections
     )
     BEGIN {
 
     }
     PROCESS {
+        if ($AllSections) {
+            Get-PhpIpamSections | % { $Params.Add('permissions', $_.id) }
+        }
         $r = Invoke-PhpIpamExecute -method patch -controller sections -params $Params -ErrorAction stop
         if ($r -and $r.success) {
             Get-PhpIpamNameserver -ID $Params['id']
@@ -34,4 +39,4 @@ function Update-PhpIpamSection {
 }
 
 
-Export-ModuleMember -Function Update-PhpIpamSection
+Export-ModuleMember -Function Update-PhpIpamNameserver

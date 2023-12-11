@@ -5,11 +5,11 @@
     Create PhpIpamNameserver
 .EXAMPLE
     # Create an nameserver and get nameserver info using pipeline
-    PS C:\> New-PhpIpamNameserver-Param @{"name"="section3"}|get-PhpIpamNameserver
+    PS C:\> New-PhpIpamNameserver -Param @{"name"="section3"}|get-PhpIpamNameserver
 
     id          : 3
-    name        : zNet
-    namesrv1    : 172.20.61.10;172.20.202.10
+    name        : namesservers
+    namesrv1    : 172.10.10.10;172.10.10.10
     description :
     permissions : 4
     editDate    : 2023-03-27 16:38:37
@@ -26,15 +26,20 @@ function New-PhpIpamNameserver {
     Param(
         [parameter(Mandatory = $true, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true, Position = 0)]
         [validateScript({ $_ -is [system.collections.hashtable] })]
-        $Params = @{}
+        $Params = @{},
+        [parameter]
+        [switch]$AllSections
     )
     begin {
 
     }
     process {
+        if ($AllSections) {
+            Get-PhpIpamSections | % { $Params.Add('permissions', $_.id) }
+        }
         if ($(Invoke-PhpIpamExecute -method post -controller tools -identifiers @('nameservers') -params $Params).success) {
             if ($Params.ContainsKey('name')) {
-                Get-PhpIpamSectionByName -Name $Params['name']
+                Get-PhpIpamNameserver -Name $Params['name']
             }
         }
     }
