@@ -5,9 +5,15 @@ function Resolve-PhpIpamExecuteResult {
     )
     Write-Debug "Input Result=$($result|convertto-json -Depth 100)"
 
-    if($result -and $result.success -and $result.data){
+    if ($result -and $result.success -and $result.data) {
         return $result.data
-    }else{
-        #Write-Error $r
     }
+    elseif ($result -and $result.code -eq 404 -and $result.success -match 'false') {
+        #return error with code and message
+        throw "Error $($result.code): $($result.message)"
+    }
+    else {
+        throw $result
+    }
+
 }
