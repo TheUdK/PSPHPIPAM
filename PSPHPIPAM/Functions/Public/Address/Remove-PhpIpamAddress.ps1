@@ -13,32 +13,34 @@
 .NOTES
     General notes
 #>
-function Remove-PhpIpamAddress{
+function Remove-PhpIpamAddress {
     [cmdletBinding()]
     Param(
-         [parameter(
-             Mandatory=$true,
-             ValueFromPipeline=$true,
-             ValueFromPipelineByPropertyName=$true,
-             position=0
-         )]
-         [int]$id
+        [parameter(
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true,
+            position = 0
+        )]
+        [int]$id
     )
 
-    begin{
+    begin {
 
     }
-    process{
+    process {
         Write-Debug "AddressId=$id"
-        $r=Invoke-PhpIpamExecute -method delete -controller addresses -identifiers @($ID)
-        if($r -and $r.success){
+        $r = Invoke-PhpIpamExecute -method delete -controller addresses -identifiers @($ID)
+        Write-Debug "Result=$($r|convertto-json -Depth 100)"
+        if ($r -and $r.success) {
             return $true
-        }else{
+        }
+        else {
             Write-Error $r
         }
     }
 
-    end{
+    end {
 
     }
 }
